@@ -1,0 +1,438 @@
+import sys
+import sqlite3 
+import sqlite3 as sql
+from PyQt5 import QtWidgets,uic
+#from PyQt5 import QTableWidgetItem
+#from tablewidget import Ui_MainWindow
+#vic=QtWidgets
+#Inicio de la app
+app=QtWidgets.QApplication([])
+
+#carga archivos qt designer 
+loginError= uic.loadUi("proyecto-Error Iniciar Session.ui")
+login= uic.loadUi("proyecto-iniciarSession.ui")
+mainPage= uic.loadUi("proyecto-PagPrincipal.ui")
+register= uic.loadUi("proyecto-registrar.ui")
+cart=uic.loadUi("proyecto-Carrito.ui")
+addProduct=uic.loadUi("proyecto-productos.ui")
+clients=uic.loadUi("proyecto-Cliente.ui")
+shopping=uic.loadUi("proyecto-Compra.ui")
+productEdit=uic.loadUi("proyecto-editar-productos.ui")
+cartProduct=uic.loadUi("proyecto-productos-carrito.ui")
+
+#Base de datos
+class conexion_db:
+    def __init__(self, db) :
+        self.conexion=sqlite3.connect(db)
+        #se crea un cursor para realizar opraciones en la base de datos
+        self.cursor=self.conexion.cursor()
+        
+    # función que va a ejecutar las sentencias sql
+    def consulta(self, consulta):
+        self.cursor.execute(consulta)
+    #función que guarda las operaciones que realiza el cursor
+    def commit (self):
+        self.conexion.commit();
+    # función para cerrar la base de datos
+    def cerrar(self):
+        self.conexion.close()
+
+    def mostrar(self, consulta):
+        #recupera los registos de una tabla
+        self.cursor.execute(consulta)
+        #fetchall devuelve una lista 
+        datos= self.cursor.fetchall()
+        for dato in datos:
+            print(dato)
+
+    #Funciones de la DB
+    def mostrar_productos(self):    #Mostrar productos
+        mostrar="SELECT * FROM Productos"
+
+    def insertar_productos(self):             #metodo para insertar productos
+        nombre=addProduct.labelNombre.Text()
+        precio=addProduct.labelPrecio.Text()
+        cantidad=addProduct.labelCantidad.Text()
+        categoria=addProduct.labelCategoria.Text()
+        consulta6="INSERT INTO Productos VALUES(NULL,nombre,float(labelPrecio),int(cantidad),categoria))"
+        db.consulta(consulta6)
+        db.commit()
+    def insertar_usuario(self):           #Metodo para isnertar usuarios
+        usuario=register.labelUsuario.Text()
+        cont=register.labelContText()
+        contConf=register.labelContConf.Text()
+        tipo="comun"
+        consultaUsu="INSERT INTO Usuarios VALUES(NULL,tipo,usuario,cont)"
+        db.consulta(consultaUsu)
+        db.commit()
+mostrar="select * from Productos"
+#Creacion de tablas del supermercado
+db=conexion_db('supermercado.db')
+
+#consulta1="CREATE TABLE IF NOT EXISTS Rol(id_rol INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT)"
+#db.consulta(consulta1)
+
+consulta2="CREATE TABLE IF NOT EXISTS Usuarios(id_usuarios INTEGER PRIMARY KEY AUTOINCREMENT,rol TEXT,usuario TEXT,password TEXT)"
+db.consulta(consulta2)
+
+consulta3="CREATE TABLE IF NOT EXISTS Ventas(id_ventas INTEGER PRIMARY KEY AUTOINCREMENT, id_usuario TEXT, fecha TEXT)"
+db.consulta(consulta3)
+
+consulta4="CREATE TABLE IF NOT EXISTS Ventas_productos (id_ventas_producto INTEGER PRIMARY KEY AUTOINCREMENT,id_productos TEXT, precio DOUBLE,id_venta TEXT,cantidad INTEGER)"
+db.consulta(consulta4)
+
+consulta5="CREATE TABLE IF NOT EXISTS Productos(id_productos INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT,precio DOUBLE,STOCK INTEGER,categoria TEXT)"
+db.consulta(consulta5)
+
+#prueba con productos
+#consulta6="INSERT INTO Productos VALUES(NULL,'azucar',13.4,15)"
+#db.consulta(consulta6)
+#db.commit()
+
+#Funciones
+def gui_login():
+    name = login.labelUsuario.text()
+    password = login.labelCont.text()
+    if (len(name)==0 or len(password)==0):        
+        login.labelAlerta.setText("Ingrese todos los datos")
+    #elif name=="usuario" and password=="123456":
+    #    gui_entrar()
+    elif name=="admin" and password=="admin":
+        gui_entrarAdmin()
+    else:
+        gui_entrar()
+        #gui_error()
+
+def gui_registerAlogin():
+    name=register.labelUsuario.text()
+    password=register.labelCont.text()
+    cpassword=register.labelContConf.text()
+    if (name!="" and password!="" and cpassword!=""):
+            if (password==cpassword):
+                usuario=register.labelUsuario.text()
+                print('Se ha registrado a usuario: ',usuario)
+                cont=register.labelCont.text()
+                contConf=register.labelContConf.text()    #!!!!!!!!!AQUI NO ANDA LA PARTE DE LA BASE DE DATOS NO ME ACEPTA PARAMERTOS SOLO VALORES YA PARA INSERTAR EJ 'HOLA'
+                tipo=register.labelRol.text()
+
+                consultaUsu="INSERT INTO Usuarios (id_usuarios ,rol ,usuario ,password ) VALUES(NULL,'"+str(tipo)+"','"+str(usuario)+"','"+str(cont)+"')"
+                
+                #consultaUsu="INSERT INTO Usuarios VALUES(NULL,'normal',labelUsuario.text(),labelCont.setText())"
+                
+                db.consulta(consultaUsu)
+                db.commit()
+                #consultaAdm="INSERT INTO Usuarios VALUES(NULL,'admin','admin','admin')"
+                #db.consulta(consultaAdm)
+                #db.commit()
+
+                register.hide()
+                login.labelUsuario.setText("")
+                login.labelCont.setText("")
+                login.labelAlerta.setText("")
+                login.show()
+                #mostrar="select * from Usuarios"
+            else:
+                register.labelAlerta.setText("Las contrasenias no coinciden")
+    else:
+        register.labelAlerta.setText("Complete todos los campos")
+
+'''
+#Usuarios(id_usuarios INTEGER PRIMARY KEY AUTOINCREMENT,id_rol TEXT,usuario TEXT,password TEXT)"
+def gui_registerAlogin(self):
+    name=register.labelUsuario.text()
+    password=register.labelCont.text()
+    cpassword=register.labelContConf.text()
+    if (name!="" and password!="" and cpassword!=""):
+            if (password==cpassword):
+                rol=register.labelRol.text()
+                usuario=register.labelUsuario.text()
+                password=register.labelCont.text()
+                #!!!!!!!!!AQUI NO ANDA LA PARTE DE LA BASE DE DATOS NO ME ACEPTA PARAMERTOS SOLO VALORES YA PARA INSERTAR EJ 'HOLA'
+                
+                #self.registro = (self.rol, self.usuario, self.password)
+                #consultaUsu="INSERT INTO Usuarios (id_usuarios INTEGER PRIMARY KEY AUTOINCREMENT,rol TEXT,usuario TEXT,password TEXT) VALUES (NULL,?,?,?), self.registro"
+                #consultaUsu="INSERT INTO Usuarios VALUES(NULL,'normal',labelUsuario.text(),labelCont.setText())"
+                consultaUsu="INSERT INTO Usuarios (id_usuarios ,rol ,usuario ,password ) VALUES (?,?,?,?),(NULL,rol,usuario,normal)"
+
+
+                db.consulta(consultaUsu)
+                db.commit()
+
+                register.hide()
+                login.labelUsuario.setText("")
+                login.labelCont.setText("")
+                login.labelAlerta.setText("")
+                login.show()
+                mostrar="select * from Usuarios"
+            else:
+                register.labelAlerta.setText("Las contrasenias no coinciden")
+    else:
+        register.labelAlerta.setText("Complete todos los campos")
+'''
+
+def gui_entrar():  #Función entrar a pag principal desde usuario comun
+    login.hide()
+    a=login.labelUsuario.text()
+    shopping.labelComprador.setText(a)
+    mainPage.labelEditar.setVisible(False)
+    mainPage.buttonAgregar.setVisible(False)
+    mainPage.buttonClientes.setVisible(False)
+    mainPage.labelProducto.setVisible(False)
+    mainPage.buttonEditar.setVisible(False)
+    mainPage.show()
+
+def gui_entrarAdmin(): #Función entrar para admin 
+    login.hide()
+    #a=login.labelUsuario.text()
+    #shopping.labelComprador.setText(a)
+    mainPage.labelEditar.setVisible(True)
+    mainPage.buttonAgregar.setVisible(True)
+    mainPage.buttonClientes.setVisible(True)
+    mainPage.labelProducto.setVisible(True)
+    mainPage.buttonEditar.setVisible(True)
+    #mainPage.listWidget.findViewById(R.id.listWidget)
+    mainPage.show()
+
+def gui_error():  #Función error de inicio de sessión
+    login.hide()
+    loginError.show()
+
+def gui_register(): #Función ir de login a registrar
+    login.hide()
+    register.labelAlerta.setText("")
+    register.labelUsuario.setText("")
+    register.labelCont.setText("")
+    register.labelContConf.setText("")
+    register.show()
+
+def gui_loginDeloginError(): #Funcion volver de errorlogin a login
+    loginError.hide()
+    login.labelUsuario.setText("")
+    login.labelCont.setText("")
+    login.show()
+
+
+def gui_registrarAlogin(): #Función registrar e ir a login
+    register.hide()
+    login.labelUsuario.setText("")
+    login.labelCont.setText("")
+    login.labelAlerta.setText("")
+    login.show()
+
+'''
+def gui_registerAlogin(): #Función volver de register a login
+    register.hide()
+    login.labelUsuario.setText("")
+    login.labelCont.setText("")
+    login.labelAlerta.setText("")
+    login.show()
+'''
+
+def gui_mainAlogin(): #Función volver de main a login
+    mainPage.hide()
+    login.labelUsuario.setText("")
+    login.labelCont.setText("")
+    login.labelAlerta.setText("")
+    login.show()
+
+def gui_mainAcarrito(): #Función ir de main a carrito 
+    mainPage.hide()
+    cart.show()
+
+def gui_mainAagregar(): #Función ir de main a agregar producto
+    mainPage.hide()
+    addProduct.labelNombre.setText("")
+    addProduct.labelPrecio.setText("")
+    addProduct.labelCantidad.setText("")
+    addProduct.labelCategoria.setText("")
+    addProduct.show()
+
+def gui_mainAcliente():  #Función ir de main a lista clientes compradores
+    mainPage.hide()
+    clients.show()
+
+def gui_mainAcartproduct():   #Función de main a carProduct
+    mainPage.hide()
+    cartProduct.show()
+    cartProduct.labelNombre.setText("")
+    cartProduct.labelPrecio.setText("")
+    cartProduct.labelCantidad.setText("")
+    
+def gui_mainAproductEdit():
+    
+
+    a=mainPage.labelEditar.text()
+    productEdit.labelCod.setText(a)
+
+    conn = sql.connect("supermercado.db")
+    cursor = conn.cursor()
+    consultaN = "select * from Productos where id_productos=" + str(a)
+    cursor.execute(consultaN)
+
+    product = cursor.fetchall()
+    productEdit.labelNombre.setText(str(product[0][1]))
+    productEdit.labelPrecio.setText(str(product[0][2]))
+    productEdit.labelCantidad.setText(str(product[0][3]))
+    productEdit.labelCategoria.setText(str(product[0][4]))
+    conn.close()
+
+        
+    mainPage.hide()
+    productEdit.show()
+
+def gui_productAMain(): #Función de productos agregar a main
+    addProduct.hide()
+    mainPage.show()
+
+def gui_productAddAgregarAmain():
+    #mainPage.hide()
+    #addProduct.show()
+    nombre=addProduct.labelNombre.text()
+    precio=addProduct.labelPrecio.text()
+    cantidad=addProduct.labelCantidad.text()
+    categoria=addProduct.labelCategoria.text()
+    if ( nombre!="" and categoria!="" and cantidad!="" and precio!="") :
+        
+        consultaProd="INSERT INTO Productos (id_productos ,nombre ,precio ,STOCK,categoria ) VALUES(NULL,'"+str(nombre)+"','"+str(precio)+"','"+str(cantidad)+"','"+str(categoria)+"')"
+        #consultaPro="INSERT INTO Productos (id_productos ,nombre ,precio ,STOCK,categoria ) VALUES(NULL,'"+str(nombre)+"','"+float(precio)+"','"+int(cantidad)+"','"+str(categoria)+"')"   
+        db.consulta(consultaProd)
+        db.commit()
+        
+        #db.consulta(consultaUsu)
+        #db.commit()
+        print("Producto registrado con éxito")
+        
+        #addProduct.labelNombre.setText("")
+        #addProduct.labelPrecio.setText("")
+        #addProduct.labelCantidad.setText("")
+        #addProduct.labelCategoria.setText("")
+        addProduct.hide()
+        mainPage.show()  
+    else:
+        addProduct.labelAlerta.setText("Complete todos los campos")
+
+
+    
+    
+
+def gui_clientAmain(): #Función de clientes a main
+    clients.hide()
+    mainPage.show()
+
+def gui_cartAmain(): #Función de carrito a main
+    cart.hide()
+    mainPage.show()
+
+
+def gui_cartACompra(): #Función de carrito a compra
+    cart.hide()
+    shopping.show()
+
+def gui_shoppingAmain(): #Función de compra a main
+    
+    usuario=shopping.labelComprador.text()
+    fecha="19-12-2022"
+    if (usuario!=""):
+        consultaVen="INSERT INTO Ventas (id_ventas , id_usuario , fecha ) VALUES(NULL,'"+str(usuario)+"','"+str(fecha)+"')"
+        db.consulta(consultaVen)
+        db.commit()
+
+    
+
+    shopping.hide()
+    mainPage.show()
+
+def gui_cartProductAmain(): #Función de cartProduct a main
+    cartProduct.hide()
+    mainPage.show()
+
+def gui_cartProductAgregar(): #Función de agregar producto y a main
+    
+    '''
+    conn = sql.connect("supermercado.db")
+    cursor = conn.cursor()
+    consultaN = "select * from Productos where id_productos=" + str(a)
+    cursor.execute(consultaN)
+    conn.commit()
+    conn.close()
+    '''
+    
+    cartProduct.hide()
+    mainPage.show()
+
+def gui_productEditAMain():
+    productEdit.hide()
+    nombrePro=productEdit.labelNombre.text()
+    print(nombrePro)
+    mainPage.show()
+
+def gui_productEditActualizar():
+
+    nombrePro=productEdit.labelNombre.text()
+    precio=productEdit.labelPrecio.text()
+    cantidad=productEdit.labelCantidad.text()
+    categoria=productEdit.labelCategoria.text()
+    id=mainPage.labelEditar.text()
+    print(nombrePro)
+    if (nombrePro!=""):
+       
+        consultaN="UPDATE Productos set nombre='"+str(nombrePro) +"' ,precio="+str(precio)+",STOCK="+str(cantidad)+",categoria='"+str(categoria)+"' where id_productos="+str(id) 
+       
+        db.consulta(consultaN)
+        db.commit()
+
+    #consulta="UPDATE Productos set nombre_producto='Pasta' where id_producto=4"
+    #db.consulta(consulta)
+    #db.commit()
+
+
+
+    productEdit.hide()
+    mainPage.show()
+
+#def agregar_comida(self):
+#    comida=self.ui.
+
+
+def salir():
+    app.exit()
+
+#Botones
+login.buttonRegistrar.clicked.connect(gui_register)
+login.buttonIngresar.clicked.connect(gui_login)
+#login.buttonTerminar.clicked.connect(salir)
+
+loginError.buttonRegresar.clicked.connect(gui_loginDeloginError)
+
+register.buttonRegistrar.clicked.connect(gui_registerAlogin)
+register.buttonIngresar.clicked.connect(gui_registrarAlogin)
+#register.buttonTerminar.clicked.connect(salir)
+
+mainPage.buttonVolver.clicked.connect(gui_mainAlogin)
+#mainPage.buttonTerminar.clicked.connect(salir)
+mainPage.buttonCarrito.clicked.connect(gui_mainAcarrito)
+mainPage.buttonAgregarProd.clicked.connect(gui_mainAcartproduct)
+
+mainPage.buttonAgregar.clicked.connect(gui_mainAagregar)
+mainPage.buttonClientes.clicked.connect(gui_mainAcliente)
+mainPage.buttonEditar.clicked.connect(gui_mainAproductEdit)
+
+addProduct.buttonVolver.clicked.connect(gui_productAMain)
+addProduct.buttonRegistrar.clicked.connect(gui_productAddAgregarAmain)
+
+clients.buttonVolver.clicked.connect(gui_clientAmain)
+
+cart.buttonVolver.clicked.connect(gui_cartAmain)
+cart.buttonComprar.clicked.connect(gui_cartACompra)
+
+shopping.buttonMenu.clicked.connect(gui_shoppingAmain)
+
+cartProduct.buttonVolver.clicked.connect(gui_cartProductAmain)
+cartProduct.buttonAgregar.clicked.connect(gui_cartProductAgregar)
+
+productEdit.buttonVolver.clicked.connect(gui_productEditAMain)
+productEdit.buttonActualizar.clicked.connect(gui_productEditActualizar)
+
+#Ejercutar programa
+login.show()
+app.exec()
